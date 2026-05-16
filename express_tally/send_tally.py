@@ -205,7 +205,39 @@ def payments():
 
     return payments
 
+@frappe.whitelist()
+def stock_journals():
 
+    payload = json.loads(frappe.request.data)
+
+    branch = payload['branch']
+    converted_branch = branch.split(",")
+
+    stock_jvs = frappe.db.get_all(
+        'Stock Entry',
+        fields=[
+            'name', 'posting_date', 'docstatus', 'company',
+            'branch', 'amended_from', 'naming_series', 'remarks', 'total_amount', 'to_warehouse', 'from_warehouse'
+            ],
+        filters={ 
+            # 'modified' : ['>', payload['date']],
+            'company': payload['company'],
+            'branch': ["in", converted_branch],
+            'docstatus': ["in", ["1", "2"]],
+            'is_synced': ['!=', 'Yes'],
+            # 'is_synced': ['!=', 'Yes']
+            },
+        limit=100
+        )
+    if stock_jvs:
+        for sjv in stock_jvs:
+            pi_no = frappe.get_doc('Stock Entry', sjv.get("name"))
+            if pi_no:
+                sjv['tstockjournal'] = pi_no
+            else:
+                sjv['tstockjournal'] = {}
+
+    return stock_jvs
 
 @frappe.whitelist()
 def customer_update():
