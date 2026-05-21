@@ -153,7 +153,7 @@ def sales():
             'posting_date' : ['>=', payload['date']],
             'company': payload['company'],
             'docstatus': 1,
-            # 'is_synced': ['!=', 'Yes']
+            'is_synced': ['!=', 'Yes']
             },
         limit=100
         )
